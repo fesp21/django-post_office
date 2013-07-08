@@ -27,3 +27,6 @@ def get_cache_backend():
             except InvalidCacheBackendError:
                 pass
     return None
+
+
+SEND_WITH_CELERY_TASK = getattr(settings, 'POST_OFFICE_SEND_WITH_CELERY', False)

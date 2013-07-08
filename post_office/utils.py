@@ -7,7 +7,7 @@ from django.utils.encoding import force_unicode
 
 from post_office import cache
 from .models import Email, PRIORITY, STATUS, EmailTemplate
-from .settings import get_email_backend
+from .settings import get_email_backend, SEND_WITH_CELERY_TASK
 
 
 try:
@@ -39,6 +39,10 @@ def send_mail(subject, message, from_email, recipient_list, html_message='',
     if priority == PRIORITY.now:
         for email in emails:
             email.dispatch()
+    elif SEND_WITH_CELERY_TASK:
+        from post_office.tasks import send_emails
+        pks = [email.pk for email in emails]
+        send_emails.delay(pks)
     return emails
 
 

@@ -3,6 +3,7 @@ from django.template import Context, Template
 
 from .models import Email, EmailTemplate, PRIORITY, STATUS
 from .utils import get_email_template, send_mail
+from .settings import SEND_WITH_CELERY_TASK
 
 
 def from_template(sender, recipient, template, context={}, scheduled_time=None,
@@ -51,6 +52,10 @@ def send(recipients, sender=None, template=None, context={}, subject='',
         if priority == PRIORITY.now:
             for email in emails:
                 email.dispatch()
+        elif SEND_WITH_CELERY_TASK:
+            from post_office.tasks import send_emails
+            pks = [email.pk for email in emails]
+            send_emails.delay(pks)
     else:
         if context:
             context = Context(context)
